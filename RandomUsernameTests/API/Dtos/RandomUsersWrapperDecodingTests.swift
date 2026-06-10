@@ -3,8 +3,8 @@
 //  RandomUsernameTests
 //
 
-import XCTest
 @testable import RandomUsername
+import XCTest
 
 final class RandomUsersWrapperDecodingTests: XCTestCase {
     private var wrapper: RandomUsersWrapper!
@@ -156,6 +156,53 @@ final class RandomUsersWrapperDecodingTests: XCTestCase {
 
     func testDecodesInfoVersion() {
         XCTAssertEqual(wrapper.info.version, "1.4")
+    }
+
+    func testDecodesNumericPostcode() throws {
+        let json = """
+        {
+            "results": [
+                {
+                    "gender": "male",
+                    "name": { "title": "Mr", "first": "John", "last": "Smith" },
+                    "location": {
+                        "street": { "number": 1, "name": "Main St" },
+                        "city": "London",
+                        "state": "England",
+                        "country": "United Kingdom",
+                        "postcode": 12345
+                    },
+                    "email": "john.smith@example.com",
+                    "login": {
+                        "uuid": "00000000-0000-0000-0000-000000000001",
+                        "username": "john",
+                        "password": "secret",
+                        "salt": "salt",
+                        "md5": "md5",
+                        "sha1": "sha1",
+                        "sha256": "sha256"
+                    },
+                    "dob": { "date": "1990-01-01T00:00:00.000Z", "age": 36 },
+                    "registered": { "date": "2010-01-01T00:00:00.000Z", "age": 16 },
+                    "phone": "123",
+                    "cell": "456",
+                    "id": { "name": null, "value": null },
+                    "picture": {
+                        "large": "https://example.com/large.jpg",
+                        "medium": "https://example.com/medium.jpg",
+                        "thumbnail": "https://example.com/thumb.jpg"
+                    },
+                    "nat": "GB"
+                }
+            ],
+            "info": { "seed": "abc", "results": 1, "page": 1, "version": "1.4" }
+        }
+        """
+
+        let data = try XCTUnwrap(json.data(using: .utf8))
+        let decodedWrapper = try JSONDecoder().decode(RandomUsersWrapper.self, from: data)
+
+        XCTAssertEqual(decodedWrapper.results[0].location.postcode, "12345")
     }
 
     func testDecodesNullID() throws {

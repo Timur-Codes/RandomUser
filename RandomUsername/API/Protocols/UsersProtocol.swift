@@ -5,6 +5,6 @@
 
 import Foundation
 
-protocol UsersProtocol: Sendable {
+protocol UsersProtocol {
     func fetchUsers(results: Int) async throws -> [RandomUser]
 }

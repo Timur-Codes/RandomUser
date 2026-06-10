@@ -13,7 +13,10 @@ class APIRequestDispatcher {
         components.path = apiRouter.path
         components.queryItems = apiRouter.parameters
 
-        guard let url = components.url else { throw APIRequestError.badURL }
+        guard let url = components.url else {
+            print("[APIRequestDispatcher] Failed to build URL for host: \(apiRouter.host), path: \(apiRouter.path)")
+            throw APIRequestError.badURL
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = apiRouter.method
 
@@ -25,19 +28,22 @@ class APIRequestDispatcher {
         return try await withCheckedThrowingContinuation { continuation in
             let dataTask = session.dataTask(with: urlRequest) { data, _, error in
                 if let error {
+                    print("[APIRequestDispatcher] Request failed: \(error.localizedDescription)")
                     return continuation.resume(with: .failure(error))
                 }
 
                 guard let data else {
+                    print("[APIRequestDispatcher] No data received for \(url.absoluteString)")
                     return continuation.resume(with: .failure(APIRequestError.noData))
                 }
 
                 do {
                     let responseObject = try JSONDecoder().decode(T.self, from: data)
                     DispatchQueue.main.async {
-                        return continuation.resume(with: .success(responseObject))
+                        continuation.resume(with: .success(responseObject))
                     }
                 } catch {
+                    print("[APIRequestDispatcher] Decoding failed: \(error)")
                     return continuation.resume(with: .failure(error))
                 }
             }
@@ -52,7 +58,10 @@ class APIRequestDispatcher {
         components.path = apiRouter.path
         components.queryItems = apiRouter.parameters
 
-        guard let url = components.url else { throw APIRequestError.badURL }
+        guard let url = components.url else {
+            print("[APIRequestDispatcher] Failed to build URL for host: \(apiRouter.host), path: \(apiRouter.path)")
+            throw APIRequestError.badURL
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = apiRouter.method
 
@@ -64,6 +73,7 @@ class APIRequestDispatcher {
         return try await withCheckedThrowingContinuation { continuation in
             let dataTask = session.dataTask(with: urlRequest) { _, _, error in
                 if let error {
+                    print("[APIRequestDispatcher] Request failed: \(error.localizedDescription)")
                     return continuation.resume(with: .failure(error))
                 }
 
