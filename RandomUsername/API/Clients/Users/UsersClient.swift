@@ -6,7 +6,7 @@
 import Foundation
 
 final class UsersClient: UsersProtocol {
-    func fetchUsers(results: Int = .USERS_FETCHING_LIMIT) async throws -> [RandomUser] {
+    func fetchUsers(results: Int) async throws -> [RandomUser] {
         let usersAPIRouter: UsersAPIRouter = .fetchUsers(results)
         let usersWrapper: RandomUsersWrapper = try await APIRequestDispatcher.request(apiRouter: usersAPIRouter)
 
