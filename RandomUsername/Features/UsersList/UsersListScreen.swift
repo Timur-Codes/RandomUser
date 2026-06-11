@@ -8,18 +8,22 @@ import SwiftUI
 struct UsersListScreen: View {
     @State private var viewModel: UsersListViewModel
 
-    init() {
-        _viewModel = State(wrappedValue: UsersListViewModel(usersClient: UsersClient()))
-    }
-
     init(viewModel: UsersListViewModel) {
         _viewModel = State(wrappedValue: viewModel)
+    }
+
+    private var searchTextBinding: Binding<String> {
+        Binding(
+            get: { viewModel.searchText },
+            set: { viewModel.searchText = $0 }
+        )
     }
 
     var body: some View {
         NavigationStack {
             content
                 .navigationTitle("Random Users")
+                .searchable(text: searchTextBinding, prompt: "Search by name or email")
         }
         .task {
             await viewModel.loadUsersIfNeeded()
@@ -34,12 +38,18 @@ struct UsersListScreen: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
         case .loaded:
-            List(viewModel.users, id: \.uuid) { user in
-                NavigationLink(value: user) {
-                    UserRowView(user: user)
+            Group {
+                if viewModel.showsEmptySearchResults {
+                    ContentUnavailableView.search(text: viewModel.searchText)
+                } else {
+                    List(viewModel.filteredUsers, id: \.uuid) { user in
+                        NavigationLink(value: user) {
+                            UserRowView(user: user)
+                        }
+                    }
+                    .listStyle(.plain)
                 }
             }
-            .listStyle(.plain)
             .navigationDestination(for: RandomUser.self) { user in
                 UserDetailScreen(user: user)
             }
@@ -69,5 +79,7 @@ struct UsersListScreen: View {
 }
 
 #Preview("Loading") {
-    UsersListScreen()
+    UsersListScreen(
+        viewModel: UsersListViewModel(usersClient: MockUsersClient())
+    )
 }

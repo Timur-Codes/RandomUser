@@ -11,7 +11,9 @@ import SwiftUI
 struct RandomUsernameApp: App {
     var body: some Scene {
         WindowGroup {
-            UsersListScreen()
+            UsersListScreen(
+                viewModel: UsersListViewModel(usersClient: UsersClient())
+            )
         }
     }
 }

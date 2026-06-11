@@ -16,6 +16,23 @@ final class UsersListViewModel {
 
     private(set) var users: [RandomUser] = []
     private(set) var viewState: ViewState = .loading
+    var searchText = ""
+
+    var filteredUsers: [RandomUser] {
+        guard !trimmedSearchText.isEmpty else {
+            return users
+        }
+
+        return users.filter { $0.matches(searchText: trimmedSearchText) }
+    }
+
+    var showsEmptySearchResults: Bool {
+        filteredUsers.isEmpty && !trimmedSearchText.isEmpty
+    }
+
+    private var trimmedSearchText: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     private let usersClient: UsersServiceProtocol
 
