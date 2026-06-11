@@ -23,7 +23,7 @@ struct UsersListScreen: View {
         NavigationStack {
             content
                 .navigationTitle("Random Users")
-                .searchable(text: searchTextBinding, prompt: "Search by name or email")
+                .searchable(text: searchTextBinding, prompt: "Search by name, surname or email")
         }
         .task {
             await viewModel.loadUsersIfNeeded()
@@ -47,6 +47,11 @@ struct UsersListScreen: View {
                             NavigationLink(value: user) {
                                 UserRowView(user: user)
                             }
+                            .buttonStyle(.plain)
+                            .navigationLinkIndicatorVisibility(.hidden)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
                                     viewModel.deleteUser(user)
@@ -65,10 +70,14 @@ struct UsersListScreen: View {
                                 ProgressView()
                                 Spacer()
                             }
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                             .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                         }
                     }
                     .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .background(Color(.systemGroupedBackground))
                 }
             }
             .navigationDestination(for: RandomUser.self) { user in
