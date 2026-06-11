@@ -5,7 +5,7 @@
 
 import Foundation
 
-final class MockUsersClient: UsersProtocol {
+final class MockUsersClient: UsersServiceProtocol {
     let users: [RandomUser]
     let shouldThrowError: Bool
 

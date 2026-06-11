@@ -1,10 +1,10 @@
 //
-//  UsersProtocol.swift
+//  UsersServiceProtocol.swift
 //  RandomUsername
 //
 
 import Foundation
 
-protocol UsersProtocol {
+protocol UsersServiceProtocol {
     func fetchUsers(results: Int) async throws -> [RandomUser]
 }

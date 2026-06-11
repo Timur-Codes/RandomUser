@@ -17,15 +17,10 @@ final class UsersListViewModel {
     private(set) var users: [RandomUser] = []
     private(set) var viewState: ViewState = .loading
 
-    private let usersClient: UsersProtocol
+    private let usersClient: UsersServiceProtocol
 
-    init(usersClient: UsersProtocol, initialUsers: [RandomUser]? = nil) {
+    init(usersClient: UsersServiceProtocol) {
         self.usersClient = usersClient
-
-        if let initialUsers {
-            users = initialUsers
-            viewState = .loaded
-        }
     }
 
     func loadUsersIfNeeded() async {
