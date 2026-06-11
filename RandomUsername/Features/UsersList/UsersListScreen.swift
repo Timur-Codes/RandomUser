@@ -20,9 +20,9 @@ struct UsersListScreen: View {
         NavigationStack {
             content
                 .navigationTitle("Random Users")
-                .task {
-                    await viewModel.loadUsers()
-                }
+        }
+        .task {
+            await viewModel.loadUsersIfNeeded()
         }
     }
 
@@ -35,9 +35,14 @@ struct UsersListScreen: View {
 
         case .loaded:
             List(viewModel.users, id: \.uuid) { user in
-                UserRowView(user: user)
+                NavigationLink(value: user) {
+                    UserRowView(user: user)
+                }
             }
             .listStyle(.plain)
+            .navigationDestination(for: RandomUser.self) { user in
+                UserDetailScreen(user: user)
+            }
 
         case let .error(message):
             ContentUnavailableView {

@@ -28,6 +28,11 @@ final class UsersListViewModel {
         }
     }
 
+    func loadUsersIfNeeded() async {
+        guard viewState != .loaded else { return }
+        await loadUsers()
+    }
+
     func loadUsers() async {
         viewState = .loading
 
