@@ -5,24 +5,26 @@
 
 import Foundation
 
-final class MockUsersClient: UsersProtocol {
-    let users: [RandomUser]
+final class MockUsersClient: UsersServiceProtocol {
+    let usersByPage: [Int: [RandomUser]]
     let shouldThrowError: Bool
 
     init(users: [RandomUser] = [], shouldThrowError: Bool = false) {
-        self.users = users
+        self.usersByPage = [.USERS_STARTING_PAGE: users]
         self.shouldThrowError = shouldThrowError
     }
 
-    func fetchUsers(results: Int) async throws -> [RandomUser] {
+    init(usersByPage: [Int: [RandomUser]], shouldThrowError: Bool = false) {
+        self.usersByPage = usersByPage
+        self.shouldThrowError = shouldThrowError
+    }
+
+    func fetchUsers(results: Int, page: Int) async throws -> [RandomUser] {
         if shouldThrowError {
             throw APIRequestError.noData
         }
 
-        if users.isEmpty {
-            return []
-        }
-
+        let users = usersByPage[page] ?? []
         return Array(users.prefix(results))
     }
 }

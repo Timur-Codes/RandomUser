@@ -40,11 +40,6 @@
 			path = RandomUsernameTests;
 			sourceTree = "<group>";
 		};
-		3940390A2FD9A65B00EE4C50 /* RandomUsernameUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = RandomUsernameUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,7 +72,6 @@
 			children = (
 				394038F22FD9A65900EE4C50 /* RandomUsername */,
 				394039002FD9A65B00EE4C50 /* RandomUsernameTests */,
-				3940390A2FD9A65B00EE4C50 /* RandomUsernameUITests */,
 				394038F12FD9A65900EE4C50 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -152,9 +146,6 @@
 			);
 			dependencies = (
 				394039092FD9A65B00EE4C50 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				3940390A2FD9A65B00EE4C50 /* RandomUsernameUITests */,
 			);
 			name = RandomUsernameUITests;
 			packageProductDependencies = (

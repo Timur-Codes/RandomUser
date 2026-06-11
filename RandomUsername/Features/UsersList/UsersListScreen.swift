@@ -1,0 +1,110 @@
+//
+//  UsersListScreen.swift
+//  RandomUsername
+//
+
+import SwiftUI
+
+struct UsersListScreen: View {
+    @State private var viewModel: UsersListViewModel
+
+    init(viewModel: UsersListViewModel) {
+        _viewModel = State(wrappedValue: viewModel)
+    }
+
+    private var searchTextBinding: Binding<String> {
+        Binding(
+            get: { viewModel.searchText },
+            set: { viewModel.setSearchText($0) }
+        )
+    }
+
+    var body: some View {
+        NavigationStack {
+            content
+                .navigationTitle("Random Users")
+                .searchable(text: searchTextBinding, prompt: "Search by name or email")
+        }
+        .task {
+            await viewModel.loadUsersIfNeeded()
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch viewModel.viewState {
+        case .loading:
+            ProgressView("Loading users…")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        case .loaded:
+            Group {
+                if viewModel.showsEmptySearchResults {
+                    ContentUnavailableView.search(text: viewModel.appliedSearchText)
+                } else {
+                    List {
+                        ForEach(viewModel.filteredUsers, id: \.uuid) { user in
+                            NavigationLink(value: user) {
+                                UserRowView(user: user)
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    viewModel.deleteUser(user)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                            .task {
+                                await viewModel.loadMoreUsersIfNeeded(currentUser: user)
+                            }
+                        }
+
+                        if viewModel.isLoadingMore {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
+                            }
+                            .listRowSeparator(.hidden)
+                        }
+                    }
+                    .listStyle(.plain)
+                }
+            }
+            .navigationDestination(for: RandomUser.self) { user in
+                UserDetailScreen(user: user)
+            }
+
+        case let .error(message):
+            ContentUnavailableView {
+                Label("Could Not Load Users", systemImage: "wifi.exclamationmark")
+            } description: {
+                Text(message)
+            } actions: {
+                Button("Try Again") {
+                    Task {
+                        await viewModel.loadUsers()
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview("Loaded") {
+    UsersListScreen(
+        viewModel: UsersListViewModel(
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
+        )
+    )
+}
+
+#Preview("Loading") {
+    UsersListScreen(
+        viewModel: UsersListViewModel(
+            usersClient: MockUsersClient(),
+            usersStorage: MockUsersStorage()
+        )
+    )
+}
