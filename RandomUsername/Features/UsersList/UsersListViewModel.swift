@@ -36,6 +36,7 @@ final class UsersListViewModel {
     }
 
     private var nextPage = Int.USERS_STARTING_PAGE
+    private var deletedUserIDs: Set<String>
 
     private let usersClient: UsersServiceProtocol
     private let usersStorage: UsersStorageProtocol
@@ -46,12 +47,13 @@ final class UsersListViewModel {
     ) {
         self.usersClient = usersClient
         self.usersStorage = usersStorage
+        self.deletedUserIDs = usersStorage.getDeletedUserIDs()
     }
 
     func loadUsersIfNeeded() async {
         guard viewState != .loaded else { return }
 
-        let storedUsers = usersStorage.getUsers()
+        let storedUsers = usersStorage.getUsers().excludingUsers(withIDs: deletedUserIDs)
 
         guard storedUsers.isEmpty else {
             users = storedUsers
@@ -81,16 +83,13 @@ final class UsersListViewModel {
     func loadMoreUsersIfNeeded(currentUser: RandomUser) async {
         guard viewState == .loaded else { return }
         guard !isLoadingMore else { return }
-        
-        // When we're at the last item in the list, then it should fetch the next 40 items
-        // Otherwise don't fetch them
         guard currentUser.uuid == filteredUsers.last?.uuid else { return }
 
         isLoadingMore = true
 
         do {
             let fetchedUsers = try await fetchUsers(page: nextPage)
-            users = users.appendingUniqueUsers(fetchedUsers)
+            users = users.appendingUniqueUsers(fetchedUsers, excluding: deletedUserIDs)
             nextPage += 1
             persistUsers()
             isLoadingMore = false
@@ -100,8 +99,19 @@ final class UsersListViewModel {
         }
     }
 
+    func deleteUser(_ user: RandomUser) {
+        users.removeAll { $0.uuid == user.uuid }
+        deletedUserIDs.insert(user.uuid)
+        usersStorage.addDeletedUserID(user.uuid)
+        usersStorage.saveUsers(users)
+    }
+
+    // Deleted users will be sorted out from newly fetched users
     private func fetchUsers(page: Int) async throws -> [RandomUser] {
-        try await usersClient.fetchUsers(results: .USERS_FETCHING_LIMIT, page: page)
+        let fetchedUsers = try await usersClient.fetchUsers(results: .USERS_FETCHING_LIMIT, page: page)
+        
+        // For example: 40 users - 2 deletedIds = 38 users (if those 2 ids appear in the new fetched list)
+        return fetchedUsers.excludingUsers(withIDs: deletedUserIDs)
     }
 
     private func persistUsers() {

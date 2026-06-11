@@ -47,6 +47,13 @@ struct UsersListScreen: View {
                             NavigationLink(value: user) {
                                 UserRowView(user: user)
                             }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    viewModel.deleteUser(user)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                             .task {
                                 await viewModel.loadMoreUsersIfNeeded(currentUser: user)
                             }

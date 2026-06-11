@@ -51,4 +51,10 @@ final class UsersStorageTests: XCTestCase {
 
         XCTAssertEqual(usersStorage.getNextPage(), 3)
     }
+
+    func testAddDeletedUserID_persistsDeletedID() {
+        usersStorage.addDeletedUserID(MockRandomUser.sample.uuid)
+
+        XCTAssertEqual(usersStorage.getDeletedUserIDs(), [MockRandomUser.sample.uuid])
+    }
 }

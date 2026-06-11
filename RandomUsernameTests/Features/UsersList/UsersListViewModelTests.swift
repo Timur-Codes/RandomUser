@@ -121,6 +121,53 @@ final class UsersListViewModelTests: XCTestCase {
         ])
     }
 
+    func testDeleteUser_removesUserAndPersistsDeletedID() async {
+        let storage = MockUsersStorage()
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(users: [MockRandomUser.sample, MockRandomUser.other]),
+            usersStorage: storage
+        )
+
+        await viewModel.loadUsers()
+        viewModel.deleteUser(MockRandomUser.sample)
+
+        XCTAssertEqual(viewModel.users.map(\.uuid), [MockRandomUser.other.uuid])
+        XCTAssertEqual(storage.storedUsers.map(\.uuid), [MockRandomUser.other.uuid])
+        XCTAssertEqual(storage.deletedUserIDs, [MockRandomUser.sample.uuid])
+    }
+
+    func testLoadMoreUsersIfNeeded_excludesPreviouslyDeletedUsers() async {
+        let storage = MockUsersStorage(deletedUserIDs: [MockRandomUser.other.uuid])
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(usersByPage: [
+                1: [MockRandomUser.sample],
+                2: [MockRandomUser.other, MockRandomUser.sample]
+            ]),
+            usersStorage: storage
+        )
+
+        await viewModel.loadUsers()
+        await viewModel.loadMoreUsersIfNeeded(currentUser: MockRandomUser.sample)
+
+        XCTAssertEqual(viewModel.users.map(\.uuid), [MockRandomUser.sample.uuid])
+    }
+
+    func testLoadUsersIfNeeded_excludesDeletedUsersFromStorage() async {
+        let storage = MockUsersStorage(
+            storedUsers: [MockRandomUser.sample, MockRandomUser.other],
+            storedNextPage: 2,
+            deletedUserIDs: [MockRandomUser.sample.uuid]
+        )
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(users: []),
+            usersStorage: storage
+        )
+
+        await viewModel.loadUsersIfNeeded()
+
+        XCTAssertEqual(viewModel.users.map(\.uuid), [MockRandomUser.other.uuid])
+    }
+
     func testLoadMoreUsersIfNeeded_doesNotFetchForNonLastUser() async {
         let viewModel = UsersListViewModel(
             usersClient: MockUsersClient(usersByPage: [

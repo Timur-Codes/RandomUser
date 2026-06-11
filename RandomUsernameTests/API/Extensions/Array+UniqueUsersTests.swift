@@ -26,4 +26,21 @@ final class ArrayUniqueUsersTests: XCTestCase {
             MockRandomUser.other.uuid
         ])
     }
+
+    func testAppendingUniqueUsers_skipsExcludedUsers() {
+        let users = [MockRandomUser.sample]
+        let updatedUsers = users.appendingUniqueUsers(
+            [MockRandomUser.other],
+            excluding: [MockRandomUser.other.uuid]
+        )
+
+        XCTAssertEqual(updatedUsers.map(\.uuid), [MockRandomUser.sample.uuid])
+    }
+
+    func testExcludingUsers_removesMatchingIDs() {
+        let users = [MockRandomUser.sample, MockRandomUser.other]
+        let filteredUsers = users.excludingUsers(withIDs: [MockRandomUser.sample.uuid])
+
+        XCTAssertEqual(filteredUsers.map(\.uuid), [MockRandomUser.other.uuid])
+    }
 }
