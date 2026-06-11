@@ -8,7 +8,7 @@ import XCTest
 
 final class UsersAPIRouterTests: XCTestCase {
     var usersAPIRouter: UsersAPIRouter!
-    
+
     override func setUp() async throws {
         usersAPIRouter = .fetchUsers(40)
     }
@@ -50,7 +50,7 @@ final class UsersAPIRouterTests: XCTestCase {
 
         XCTAssertNotNil(components.url)
         XCTAssertEqual(
-            components.url!.absoluteString,
+            components.url?.absoluteString,
             "https://api.randomuser.me/?results=40"
         )
     }
