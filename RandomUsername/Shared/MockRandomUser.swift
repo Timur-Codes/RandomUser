@@ -38,4 +38,37 @@ enum MockRandomUser {
         ),
         nat: "NL"
     )
+
+    static let other = RandomUser(
+        gender: "male",
+        name: RandomUserName(title: "Mr", first: "John", last: "Smith"),
+        location: RandomUserLocation(
+            street: RandomUserStreet(number: 1, name: "Main St"),
+            city: "London",
+            state: "England",
+            country: "United Kingdom",
+            postcode: "SW1A 1AA"
+        ),
+        email: "john.smith@example.com",
+        login: RandomUserLogin(
+            uuid: "00000000-0000-0000-0000-000000000001",
+            username: "johnsmith",
+            password: "secret",
+            salt: "salt",
+            md5: "md5",
+            sha1: "sha1",
+            sha256: "sha256"
+        ),
+        dob: RandomUserDateInfo(date: "1990-01-01T00:00:00.000Z", age: 36),
+        registered: RandomUserDateInfo(date: "2010-01-01T00:00:00.000Z", age: 16),
+        phone: "123",
+        cell: "456",
+        id: RandomUserID(name: nil, value: nil),
+        picture: RandomUserPicture(
+            large: "https://example.com/large.jpg",
+            medium: "https://example.com/medium.jpg",
+            thumbnail: "https://example.com/thumb.jpg"
+        ),
+        nat: "GB"
+    )
 }

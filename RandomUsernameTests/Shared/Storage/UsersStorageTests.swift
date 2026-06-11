@@ -35,4 +35,20 @@ final class UsersStorageTests: XCTestCase {
 
         XCTAssertEqual(usersStorage.getUsers().map(\.uuid), [MockRandomUser.sample.uuid])
     }
+
+    func testGetNextPage_withNoSavedData_returnsStartingPage() {
+        XCTAssertEqual(usersStorage.getNextPage(), .USERS_STARTING_PAGE)
+    }
+
+    func testGetNextPage_withSavedUsersAndNoStoredPage_returnsNextPage() {
+        usersStorage.saveUsers([MockRandomUser.sample])
+
+        XCTAssertEqual(usersStorage.getNextPage(), .USERS_STARTING_PAGE + 1)
+    }
+
+    func testSaveAndGetNextPage_persistsPage() {
+        usersStorage.saveNextPage(3)
+
+        XCTAssertEqual(usersStorage.getNextPage(), 3)
+    }
 }

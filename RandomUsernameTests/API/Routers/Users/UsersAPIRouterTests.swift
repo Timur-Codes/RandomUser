@@ -10,7 +10,7 @@ final class UsersAPIRouterTests: XCTestCase {
     var usersAPIRouter: UsersAPIRouter!
 
     override func setUp() async throws {
-        usersAPIRouter = .fetchUsers(40)
+        usersAPIRouter = .fetchUsers(40, 1)
     }
 
     func testUsersHost() {
@@ -31,7 +31,8 @@ final class UsersAPIRouterTests: XCTestCase {
 
     func testFetchUsersParameters() {
         let expectedParameters = [
-            URLQueryItem(name: "results", value: "40")
+            URLQueryItem(name: "results", value: "40"),
+            URLQueryItem(name: "page", value: "1")
         ]
 
         XCTAssertEqual(usersAPIRouter.parameters, expectedParameters)
@@ -51,7 +52,7 @@ final class UsersAPIRouterTests: XCTestCase {
         XCTAssertNotNil(components.url)
         XCTAssertEqual(
             components.url?.absoluteString,
-            "https://api.randomuser.me/?results=40"
+            "https://api.randomuser.me/?results=40&page=1"
         )
     }
 }

@@ -6,5 +6,5 @@
 import Foundation
 
 protocol UsersServiceProtocol {
-    func fetchUsers(results: Int) async throws -> [RandomUser]
+    func fetchUsers(results: Int, page: Int) async throws -> [RandomUser]
 }

@@ -42,9 +42,23 @@ struct UsersListScreen: View {
                 if viewModel.showsEmptySearchResults {
                     ContentUnavailableView.search(text: viewModel.searchText)
                 } else {
-                    List(viewModel.filteredUsers, id: \.uuid) { user in
-                        NavigationLink(value: user) {
-                            UserRowView(user: user)
+                    List {
+                        ForEach(viewModel.filteredUsers, id: \.uuid) { user in
+                            NavigationLink(value: user) {
+                                UserRowView(user: user)
+                            }
+                            .task {
+                                await viewModel.loadMoreUsersIfNeeded(currentUser: user)
+                            }
+                        }
+
+                        if viewModel.isLoadingMore {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
+                            }
+                            .listRowSeparator(.hidden)
                         }
                     }
                     .listStyle(.plain)

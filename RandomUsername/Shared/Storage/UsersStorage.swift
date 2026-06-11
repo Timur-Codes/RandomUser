@@ -8,6 +8,7 @@ import Foundation
 final class UsersStorage: UsersStorageProtocol {
     private let userDefaults: UserDefaults
     private let usersKey = "savedUsers"
+    private let nextPageKey = "nextPage"
 
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
@@ -26,5 +27,17 @@ final class UsersStorage: UsersStorageProtocol {
         guard let data = try? JSONEncoder().encode(users) else { return }
 
         userDefaults.set(data, forKey: usersKey)
+    }
+
+    func getNextPage() -> Int {
+        guard userDefaults.object(forKey: nextPageKey) != nil else {
+            return getUsers().isEmpty ? .USERS_STARTING_PAGE : .USERS_STARTING_PAGE + 1
+        }
+
+        return userDefaults.integer(forKey: nextPageKey)
+    }
+
+    func saveNextPage(_ page: Int) {
+        userDefaults.set(page, forKey: nextPageKey)
     }
 }

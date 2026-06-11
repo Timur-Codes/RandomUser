@@ -42,6 +42,18 @@ final class UsersListViewModelTests: XCTestCase {
         XCTAssertEqual(storage.storedUsers.map(\.uuid), [MockRandomUser.sample.uuid])
     }
 
+    func testLoadUsers_success_savesNextPage() async {
+        let storage = MockUsersStorage()
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: storage
+        )
+
+        await viewModel.loadUsers()
+
+        XCTAssertEqual(storage.storedNextPage, .USERS_STARTING_PAGE + 1)
+    }
+
     func testLoadUsers_failure_setsErrorState() async {
         let viewModel = UsersListViewModel(
             usersClient: MockUsersClient(shouldThrowError: true),
@@ -55,7 +67,10 @@ final class UsersListViewModelTests: XCTestCase {
     }
 
     func testLoadUsersIfNeeded_whenStorageHasUsers_loadsWithoutFetching() async {
-        let storage = MockUsersStorage(storedUsers: [MockRandomUser.sample])
+        let storage = MockUsersStorage(
+            storedUsers: [MockRandomUser.sample],
+            storedNextPage: 2
+        )
         let viewModel = UsersListViewModel(
             usersClient: MockUsersClient(users: []),
             usersStorage: storage
@@ -65,6 +80,60 @@ final class UsersListViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.viewState, .loaded)
         XCTAssertEqual(viewModel.users.map(\.uuid), [MockRandomUser.sample.uuid])
+    }
+
+    func testLoadMoreUsersIfNeeded_appendsNextPageUsers() async {
+        let storage = MockUsersStorage()
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(usersByPage: [
+                1: [MockRandomUser.sample],
+                2: [MockRandomUser.other]
+            ]),
+            usersStorage: storage
+        )
+
+        await viewModel.loadUsers()
+        await viewModel.loadMoreUsersIfNeeded(currentUser: MockRandomUser.sample)
+
+        XCTAssertEqual(viewModel.users.map(\.uuid), [
+            MockRandomUser.sample.uuid,
+            MockRandomUser.other.uuid
+        ])
+        XCTAssertEqual(storage.storedNextPage, 3)
+    }
+
+    func testLoadMoreUsersIfNeeded_skipsDuplicateUsers() async {
+        let storage = MockUsersStorage()
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(usersByPage: [
+                1: [MockRandomUser.sample],
+                2: [MockRandomUser.sample, MockRandomUser.other]
+            ]),
+            usersStorage: storage
+        )
+
+        await viewModel.loadUsers()
+        await viewModel.loadMoreUsersIfNeeded(currentUser: MockRandomUser.sample)
+
+        XCTAssertEqual(viewModel.users.map(\.uuid), [
+            MockRandomUser.sample.uuid,
+            MockRandomUser.other.uuid
+        ])
+    }
+
+    func testLoadMoreUsersIfNeeded_doesNotFetchForNonLastUser() async {
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(usersByPage: [
+                1: [MockRandomUser.sample, MockRandomUser.other],
+                2: [MockRandomUser.sample]
+            ]),
+            usersStorage: MockUsersStorage()
+        )
+
+        await viewModel.loadUsers()
+        await viewModel.loadMoreUsersIfNeeded(currentUser: MockRandomUser.sample)
+
+        XCTAssertEqual(viewModel.users.count, 2)
     }
 
     func testLoadUsersIfNeeded_whenAlreadyLoaded_keepsExistingUsers() async {
