@@ -59,11 +59,6 @@ final class UsersListViewModel {
         }
     }
 
-    func applyPendingSearch() {
-        searchTask?.cancel()
-        appliedSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
     func loadUsersIfNeeded() async {
         guard viewState != .loaded else { return }
 
