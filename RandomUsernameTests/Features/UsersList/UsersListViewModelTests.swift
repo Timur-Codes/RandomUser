@@ -8,6 +8,11 @@ import XCTest
 
 @MainActor
 final class UsersListViewModelTests: XCTestCase {
+    private func setSearchText(_ text: String, on viewModel: UsersListViewModel) async {
+        viewModel.setSearchText(text)
+        try? await Task.sleep(for: .milliseconds(Int.SEARCH_DEBOUNCE_MILLISECONDS + 50))
+    }
+
     func testInitialState_isLoadingWithNoUsers() {
         let viewModel = UsersListViewModel(
             usersClient: MockUsersClient(),
@@ -227,8 +232,7 @@ final class UsersListViewModelTests: XCTestCase {
         )
 
         await viewModel.loadUsers()
-        viewModel.setSearchText("")
-        viewModel.applyPendingSearch()
+        await setSearchText("", on: viewModel)
 
         XCTAssertEqual(viewModel.filteredUsers.map(\.uuid), viewModel.users.map(\.uuid))
     }
@@ -252,8 +256,7 @@ final class UsersListViewModelTests: XCTestCase {
         )
 
         await viewModel.loadUsers()
-        viewModel.setSearchText("Rigtje")
-        viewModel.applyPendingSearch()
+        await setSearchText("Rigtje", on: viewModel)
 
         XCTAssertEqual(viewModel.filteredUsers.map(\.uuid), [MockRandomUser.sample.uuid])
     }
@@ -265,8 +268,7 @@ final class UsersListViewModelTests: XCTestCase {
         )
 
         await viewModel.loadUsers()
-        viewModel.setSearchText("Derikx")
-        viewModel.applyPendingSearch()
+        await setSearchText("Derikx", on: viewModel)
 
         XCTAssertEqual(viewModel.filteredUsers.map(\.uuid), [MockRandomUser.sample.uuid])
     }
@@ -278,8 +280,7 @@ final class UsersListViewModelTests: XCTestCase {
         )
 
         await viewModel.loadUsers()
-        viewModel.setSearchText("rigtje.derikx")
-        viewModel.applyPendingSearch()
+        await setSearchText("rigtje.derikx", on: viewModel)
 
         XCTAssertEqual(viewModel.filteredUsers.map(\.uuid), [MockRandomUser.sample.uuid])
     }
@@ -291,8 +292,7 @@ final class UsersListViewModelTests: XCTestCase {
         )
 
         await viewModel.loadUsers()
-        viewModel.setSearchText("not-a-match")
-        viewModel.applyPendingSearch()
+        await setSearchText("not-a-match", on: viewModel)
 
         XCTAssertTrue(viewModel.filteredUsers.isEmpty)
     }
@@ -304,8 +304,7 @@ final class UsersListViewModelTests: XCTestCase {
         )
 
         await viewModel.loadUsers()
-        viewModel.setSearchText("")
-        viewModel.applyPendingSearch()
+        await setSearchText("", on: viewModel)
 
         XCTAssertFalse(viewModel.showsEmptySearchResults)
     }
@@ -317,8 +316,7 @@ final class UsersListViewModelTests: XCTestCase {
         )
 
         await viewModel.loadUsers()
-        viewModel.setSearchText("not-a-match")
-        viewModel.applyPendingSearch()
+        await setSearchText("not-a-match", on: viewModel)
 
         XCTAssertTrue(viewModel.showsEmptySearchResults)
     }
@@ -330,8 +328,7 @@ final class UsersListViewModelTests: XCTestCase {
         )
 
         await viewModel.loadUsers()
-        viewModel.setSearchText("Rigtje")
-        viewModel.applyPendingSearch()
+        await setSearchText("Rigtje", on: viewModel)
 
         XCTAssertFalse(viewModel.showsEmptySearchResults)
     }

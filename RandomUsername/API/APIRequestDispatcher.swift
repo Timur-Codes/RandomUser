@@ -50,36 +50,4 @@ class APIRequestDispatcher {
             dataTask.resume()
         }
     }
-
-    class func request(apiRouter: APIRouting) async throws {
-        var components = URLComponents()
-        components.host = apiRouter.host
-        components.scheme = apiRouter.scheme
-        components.path = apiRouter.path
-        components.queryItems = apiRouter.parameters
-
-        guard let url = components.url else {
-            print("[APIRequestDispatcher] Failed to build URL for host: \(apiRouter.host), path: \(apiRouter.path)")
-            throw APIRequestError.badURL
-        }
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = apiRouter.method
-
-        apiRouter.headers?.forEach { headerField, value in
-            urlRequest.setValue(value, forHTTPHeaderField: headerField)
-        }
-
-        let session = URLSession(configuration: .default)
-        return try await withCheckedThrowingContinuation { continuation in
-            let dataTask = session.dataTask(with: urlRequest) { _, _, error in
-                if let error {
-                    print("[APIRequestDispatcher] Request failed: \(error.localizedDescription)")
-                    return continuation.resume(with: .failure(error))
-                }
-
-                continuation.resume(returning: ())
-            }
-            dataTask.resume()
-        }
-    }
 }
