@@ -12,7 +12,10 @@ struct RandomUsernameApp: App {
     var body: some Scene {
         WindowGroup {
             UsersListScreen(
-                viewModel: UsersListViewModel(usersClient: UsersClient())
+                viewModel: UsersListViewModel(
+                    usersClient: UsersClient(),
+                    usersStorage: UsersStorage()
+                )
             )
         }
     }

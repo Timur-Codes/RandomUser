@@ -73,13 +73,17 @@ struct UsersListScreen: View {
 #Preview("Loaded") {
     UsersListScreen(
         viewModel: UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
     )
 }
 
 #Preview("Loading") {
     UsersListScreen(
-        viewModel: UsersListViewModel(usersClient: MockUsersClient())
+        viewModel: UsersListViewModel(
+            usersClient: MockUsersClient(),
+            usersStorage: MockUsersStorage()
+        )
     )
 }

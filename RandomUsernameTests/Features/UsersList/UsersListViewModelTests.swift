@@ -9,7 +9,10 @@ import XCTest
 @MainActor
 final class UsersListViewModelTests: XCTestCase {
     func testInitialState_isLoadingWithNoUsers() {
-        let viewModel = UsersListViewModel(usersClient: MockUsersClient())
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(),
+            usersStorage: MockUsersStorage()
+        )
 
         XCTAssertEqual(viewModel.viewState, .loading)
         XCTAssertTrue(viewModel.users.isEmpty)
@@ -17,7 +20,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testLoadUsers_success_setsUsersAndLoadedState() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -26,9 +30,22 @@ final class UsersListViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.users.map(\.uuid), [MockRandomUser.sample.uuid])
     }
 
+    func testLoadUsers_success_savesUsersToStorage() async {
+        let storage = MockUsersStorage()
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: storage
+        )
+
+        await viewModel.loadUsers()
+
+        XCTAssertEqual(storage.storedUsers.map(\.uuid), [MockRandomUser.sample.uuid])
+    }
+
     func testLoadUsers_failure_setsErrorState() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(shouldThrowError: true)
+            usersClient: MockUsersClient(shouldThrowError: true),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -37,9 +54,23 @@ final class UsersListViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.users.isEmpty)
     }
 
+    func testLoadUsersIfNeeded_whenStorageHasUsers_loadsWithoutFetching() async {
+        let storage = MockUsersStorage(storedUsers: [MockRandomUser.sample])
+        let viewModel = UsersListViewModel(
+            usersClient: MockUsersClient(users: []),
+            usersStorage: storage
+        )
+
+        await viewModel.loadUsersIfNeeded()
+
+        XCTAssertEqual(viewModel.viewState, .loaded)
+        XCTAssertEqual(viewModel.users.map(\.uuid), [MockRandomUser.sample.uuid])
+    }
+
     func testLoadUsersIfNeeded_whenAlreadyLoaded_keepsExistingUsers() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -49,9 +80,10 @@ final class UsersListViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.users.map(\.uuid), [MockRandomUser.sample.uuid])
     }
 
-    func testLoadUsersIfNeeded_whenLoading_fetchesUsers() async {
+    func testLoadUsersIfNeeded_whenStorageIsEmpty_fetchesUsers() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsersIfNeeded()
@@ -62,7 +94,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testLoadUsersIfNeeded_whenInErrorState_retriesFetch() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(shouldThrowError: true)
+            usersClient: MockUsersClient(shouldThrowError: true),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsersIfNeeded()
@@ -73,7 +106,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testFilteredUsers_withEmptySearchText_returnsAllUsers() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -84,7 +118,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testFilteredUsers_matchesFirstName() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -95,7 +130,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testFilteredUsers_matchesLastName() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -106,7 +142,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testFilteredUsers_matchesEmail() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -117,7 +154,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testFilteredUsers_withNoMatches_returnsEmptyList() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -128,7 +166,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testShowsEmptySearchResults_isFalseWithEmptySearchText() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -139,7 +178,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testShowsEmptySearchResults_isTrueWithNoMatches() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()
@@ -150,7 +190,8 @@ final class UsersListViewModelTests: XCTestCase {
 
     func testShowsEmptySearchResults_isFalseWithMatches() async {
         let viewModel = UsersListViewModel(
-            usersClient: MockUsersClient(users: [MockRandomUser.sample])
+            usersClient: MockUsersClient(users: [MockRandomUser.sample]),
+            usersStorage: MockUsersStorage()
         )
 
         await viewModel.loadUsers()

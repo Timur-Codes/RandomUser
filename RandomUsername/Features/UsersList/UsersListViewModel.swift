@@ -35,13 +35,27 @@ final class UsersListViewModel {
     }
 
     private let usersClient: UsersServiceProtocol
+    private let usersStorage: UsersStorageProtocol
 
-    init(usersClient: UsersServiceProtocol) {
+    init(
+        usersClient: UsersServiceProtocol,
+        usersStorage: UsersStorageProtocol
+    ) {
         self.usersClient = usersClient
+        self.usersStorage = usersStorage
     }
 
     func loadUsersIfNeeded() async {
         guard viewState != .loaded else { return }
+
+        let storedUsers = usersStorage.getUsers()
+
+        guard storedUsers.isEmpty else {
+            users = storedUsers
+            viewState = .loaded
+            return
+        }
+
         await loadUsers()
     }
 
@@ -50,6 +64,7 @@ final class UsersListViewModel {
 
         do {
             users = try await usersClient.fetchUsers(results: .USERS_FETCHING_LIMIT)
+            usersStorage.saveUsers(users)
             viewState = .loaded
         } catch {
             print("[UsersListViewModel] Failed to load users: \(error)")
