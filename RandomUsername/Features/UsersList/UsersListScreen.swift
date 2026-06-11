@@ -15,7 +15,7 @@ struct UsersListScreen: View {
     private var searchTextBinding: Binding<String> {
         Binding(
             get: { viewModel.searchText },
-            set: { viewModel.searchText = $0 }
+            set: { viewModel.setSearchText($0) }
         )
     }
 
@@ -40,7 +40,7 @@ struct UsersListScreen: View {
         case .loaded:
             Group {
                 if viewModel.showsEmptySearchResults {
-                    ContentUnavailableView.search(text: viewModel.searchText)
+                    ContentUnavailableView.search(text: viewModel.appliedSearchText)
                 } else {
                     List {
                         ForEach(viewModel.filteredUsers, id: \.uuid) { user in

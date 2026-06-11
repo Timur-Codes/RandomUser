@@ -17,26 +17,24 @@ final class UsersListViewModel {
     private(set) var users: [RandomUser] = []
     private(set) var viewState: ViewState = .loading
     private(set) var isLoadingMore = false
-    var searchText = ""
+    private(set) var searchText = ""
+    private(set) var appliedSearchText = ""
 
     var filteredUsers: [RandomUser] {
-        guard !trimmedSearchText.isEmpty else {
+        guard !appliedSearchText.isEmpty else {
             return users
         }
 
-        return users.filter { $0.matches(searchText: trimmedSearchText) }
+        return users.filter { $0.matches(searchText: appliedSearchText) }
     }
 
     var showsEmptySearchResults: Bool {
-        filteredUsers.isEmpty && !trimmedSearchText.isEmpty
-    }
-
-    private var trimmedSearchText: String {
-        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        filteredUsers.isEmpty && !appliedSearchText.isEmpty
     }
 
     private var nextPage = Int.USERS_STARTING_PAGE
     private var deletedUserIDs: Set<String>
+    private var searchTask: Task<Void, Never>?
 
     private let usersClient: UsersServiceProtocol
     private let usersStorage: UsersStorageProtocol
@@ -48,6 +46,22 @@ final class UsersListViewModel {
         self.usersClient = usersClient
         self.usersStorage = usersStorage
         self.deletedUserIDs = usersStorage.getDeletedUserIDs()
+    }
+
+    func setSearchText(_ text: String) {
+        searchText = text
+        searchTask?.cancel()
+        searchTask = Task {
+            try? await Task.sleep(for: .milliseconds(Int.SEARCH_DEBOUNCE_MILLISECONDS))
+            guard !Task.isCancelled else { return }
+
+            appliedSearchText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+    }
+
+    func applyPendingSearch() {
+        searchTask?.cancel()
+        appliedSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     func loadUsersIfNeeded() async {
@@ -106,11 +120,8 @@ final class UsersListViewModel {
         usersStorage.saveUsers(users)
     }
 
-    // Deleted users will be sorted out from newly fetched users
     private func fetchUsers(page: Int) async throws -> [RandomUser] {
         let fetchedUsers = try await usersClient.fetchUsers(results: .USERS_FETCHING_LIMIT, page: page)
-        
-        // For example: 40 users - 2 deletedIds = 38 users (if those 2 ids appear in the new fetched list)
         return fetchedUsers.excludingUsers(withIDs: deletedUserIDs)
     }
 
